@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fare Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 400px;
+    }
+    label, select, p {
+      font-size: 16px;
+      margin: 8px 0;
+    }
+    select {
+      width: 100%;
+      padding: 6px;
+    }
+    #fareResult {
+      margin-top: 20px;
+      background: #f2f2f2;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    #fareResult p {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Rapid Fare Calculator</h2>
+
+  <label for="origin">Origin Station:</label>
+  <select id="origin" onchange="populateDestinations()">
+    <option value="">-- Select Origin --</option>
+  </select>
+
+  <label for="destination">Destination Station:</label>
+  <select id="destination" onchange="showFare()">
+    <option value="">-- Select Destination --</option>
+  </select>
+
+  <div id="fareResult">
+    <p><strong>Fare:</strong></p>
+    <p id="cash">Cash: -</p>
+    <p id="cashless">Cashless: -</p>
+    <p id="consession">Concession: -</p>
+    <p id="monthly">MY50: -</p> 
+  </div>
+
+  <script>
+    let fareData = [];
+
+    // Load data from fares.json
+    fetch('fares.json')
+      .then(response => response.json())
+      .then(data => {
+        fareData = data.faresData;
+        const originSelect = document.getElementById('origin');
+        fareData.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item.origin;
+          opt.textContent = item.originName;
+          originSelect.appendChild(opt);
+        });
+      });
+
+    function populateDestinations() {
+      const destination = document.getElementById('destination');
+      destination.innerHTML = '<option value="">-- Select Destination --</option>';
+
+      const selectedOrigin = document.getElementById('origin').value;
+      const originData = fareData.find(item => item.origin === selectedOrigin);
+      if (!originData) return;
+
+      originData.data.forEach(dest => {
+        const opt = document.createElement('option');
+        opt.value = dest.to;
+        opt.textContent = dest.toName;
+        destination.appendChild(opt);
+      });
+
+      resetFare();
+    }
+
+    function showFare() {
+      const origin = document.getElementById('origin').value;
+      const dest = document.getElementById('destination').value;
+      const originData = fareData.find(item => item.origin === origin);
+      if (!originData) return;
+      const fareInfo = originData.data.find(d => d.to === dest);
+      if (!fareInfo) return resetFare();
+
+      document.getElementById('cash').textContent = 'Cash: RM ' + fareInfo.fares.cash;
+      document.getElementById('cashless').textContent = 'Cashless: RM ' + fareInfo.fares.cashless;
+      document.getElementById('consession').textContent = 'Concession: RM ' + fareInfo.fares.consession;
+      document.getElementById('monthly').textContent = 'MY50: RM 50.00 *Unlimited Travel 30 Days ';
+      document.getElementById('weekly').textContent = 'Weekly: RM ' + fareInfo.fares.weekly;
+    }
+
+    function resetFare() {
+      document.getElementById('cash').textContent = 'Cash: -';
+      document.getElementById('cashless').textContent = 'Cashless: -';
+      document.getElementById('consession').textContent = 'Concession: -';
+      document.getElementById('monthly').textContent = 'My50: -';
+      document.getElementById('weekly').textContent = 'Weekly: -';
+    }
+  </script>
+
+</body>
+</html>
